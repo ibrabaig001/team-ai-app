@@ -36,10 +36,10 @@ with st.sidebar:
                 raw_text = uploaded_file.read().decode("utf-8")
                 
             if raw_text:
-                # Turn document text into vectors via OpenAI
+                # Optimized for OpenAI response syntax structure
                 embed_response = ai_client.embeddings.create(
                     model="text-embedding-3-small",
-                    input=raw_text[:8000] # Safe text limit slice for evaluation testing
+                    input=raw_text[:8000]
                 )
                 vector = embed_response.data[0].embedding
                 
@@ -63,6 +63,7 @@ if user_query := st.chat_input("Ask anything about your team files..."):
     with st.chat_message("assistant"):
         with st.spinner("Analyzing document context..."):
             try:
+                # Optimized for OpenAI response query syntax structure
                 query_embed = ai_client.embeddings.create(
                     model="text-embedding-3-small",
                     input=user_query
@@ -71,8 +72,8 @@ if user_query := st.chat_input("Ask anything about your team files..."):
                 search_results = index.query(vector=query_embed, top_k=1, include_metadata=True)
                 
                 context = ""
-                if search_results.get("matches"):
-                    context = search_results["matches"]["metadata"]["text"]
+                if search_results.get("matches") and len(search_results["matches"]) > 0:
+                    context = search_results["matches"][0]["metadata"]["text"]
                 
                 ai_response = ai_client.chat.completions.create(
                     model="gpt-4o-mini",
@@ -81,7 +82,7 @@ if user_query := st.chat_input("Ask anything about your team files..."):
                         {"role": "user", "content": user_query}
                     ],
                     temperature=0.1
-                ).choices.message.content
+                ).choices[0].message.content
                 
                 st.write(ai_response)
                 st.session_state.messages.append({"role": "assistant", "content": ai_response})
