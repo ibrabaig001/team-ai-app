@@ -41,7 +41,7 @@ with st.sidebar:
                     model="text-embedding-3-small",
                     input=raw_text[:8000] # Safe text limit slice for evaluation testing
                 )
-                vector = embed_response.data.embedding
+                vector = embed_response.data[0].embedding
                 
                 # Push vectors to Pinecone cloud filing cabinet
                 index.upsert(vectors=[(uploaded_file.name, vector, {"text": raw_text[:2000]})])
@@ -66,7 +66,7 @@ if user_query := st.chat_input("Ask anything about your team files..."):
                 query_embed = ai_client.embeddings.create(
                     model="text-embedding-3-small",
                     input=user_query
-                ).data.embedding
+                ).data[0].embedding
                 
                 search_results = index.query(vector=query_embed, top_k=1, include_metadata=True)
                 
